@@ -1,7 +1,7 @@
 # TaipyCopilot
 
 <p align="center">
-  <img src="media/app-new.png" alt="App" width="100%"/>
+  <img src="media/app_pie.png" alt="App" width="100%"/>
 </p>
 
 Converts English sentences to Taipy Web App elements
@@ -17,9 +17,6 @@ Currently supports:
 - title
 - simple histograms
 - simple pie charts
-
-Known issues:
-- Long prompts may cause StarCoder to repeat unfinished code, causing syntax errors
 
 ## Setup
 
