@@ -18,6 +18,9 @@ Currently supports:
 - simple histograms
 - simple pie charts
 
+Known issues:
+- When a prompt results in incorrect code, the app will show an error message and get stuck. To fix this, simply re-prompt and refresh the page.
+
 ## Setup
 
 **Requires a Hugging Face API key in `app.py`** 
