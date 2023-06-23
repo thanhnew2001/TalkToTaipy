@@ -3,8 +3,13 @@ from taipy import Gui
 import pandas as pd
 import requests
 
+SECRET_PATH = "secret.txt"
+with open(SECRET_PATH, "r") as f:
+    API_TOKEN = f.read()
+
+
 API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
-headers = {"Authorization": "Bearer [ENTER-YOUR-API-KEY-HERE]"}
+headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 DATA_PATH = "data.csv"
 
