@@ -1,4 +1,4 @@
-from taipy import Gui
+from taipy.gui import Gui, notify
 
 import pandas as pd
 import requests
@@ -93,6 +93,7 @@ def on_enter_press(state) -> None:
     """
     state.result = prompt(state.instruction)
     state.p.update_content(state, state.result)
+    notify(state, "success", "App Updated!")
     print(state.result)
 
 
@@ -106,7 +107,7 @@ page = """
 Enter your instruction here:
 <|{instruction}|input|on_action=on_enter_press|class_name=fullwidth|change_delay=500|>
 
-<|Data|expandable|
+<|Data|expandable|expanded=False|
 <|{data[:5]}|table|width=100%|show_all=True|>
 |>
 
