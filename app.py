@@ -99,7 +99,7 @@ page = """
 # Taipy**Copilot**{: .color-primary}
 
 Enter your instruction here:
-<|{instruction}|input|on_action=on_enter_press|class_name=fullwidth|>
+<|{instruction}|input|on_action=on_enter_press|class_name=fullwidth|change_delay=500|>
 
 <|Data|expandable|
 <|{data[:5]}|table|width=100%|show_all=True|>
@@ -110,4 +110,4 @@ Enter your instruction here:
 
 gui = Gui(page)
 p = gui.add_partial("""<|{data}|chart|mode=lines|x=Date|y=Sales|>""")
-gui.run()
+gui.run(port=6969)
