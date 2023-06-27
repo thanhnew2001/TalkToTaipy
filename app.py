@@ -22,22 +22,19 @@ data = pd.read_csv(SAMPLE_PATH, sep=",", encoding="ISO-8859-1")
 
 data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
 data = data.sort_values(by="ORDERDATE")
-data_columns = data.columns.tolist()
 
 transformed_data = data.copy()
 
+data_columns = data.columns.tolist()
+context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
+
 context = ""
 for instruction, code in zip(context_data["instruction"], context_data["code"]):
-    context += f"{instruction}\n{code}\n"
-
-context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
-# Replace occurences of the context_columns in context by _
-for column in context_columns:
-    context = context.replace(column, "_")
-
-# For all occurences of _ in context, replace it by a random column from data_columns
-for _ in range(context.count("_")):
-    context = context.replace("_", random.choice(data_columns), 1)
+    example = f"{instruction}\n{code}\n"
+    # Replace context column names with data column names
+    for column in context_columns:
+        example = example.replace(column, random.choice(data_columns))
+    context += example
 
 
 def query(payload: dict) -> dict:
@@ -107,7 +104,7 @@ def modify_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    data_prompt = f"def transfom(data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
+    data_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
     output = query(
         {
             "inputs": data_prompt,
@@ -117,7 +114,7 @@ def modify_data(state) -> None:
         }
     )[0]["generated_text"]
     output = output.split("\n")[0]
-    state.transformed_data = pd.DataFrame(eval(output))
+    state.transformed_data = pd.DataFrame(eval("state." + output))
     notify(state, "success", "Data Updated!")
     print(f"Data transformation code: {output}")
 
@@ -140,7 +137,7 @@ result = ""
 page = """
 # Taipy**Copilot**{: .color-primary}
 
-<|Original Data|expandable|expanded=False|
+<|Original Data|expandable|expanded=True|
 <|{data}|table|width=100%|page_size=5|>
 |>
 
@@ -148,7 +145,7 @@ page = """
 **Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
 
-<|Transformed Data|expandable|expanded=False|
+<|Transformed Data|expandable|expanded=True|
 <|{transformed_data}|table|width=100%|page_size=5|>
 |>
 
@@ -162,5 +159,7 @@ page = """
 """
 
 gui = Gui(page)
-p = gui.add_partial("""""")
+p = gui.add_partial(
+    """<|{transformed_data.groupby('COUNTRY').SALES.sum().reset_index()}|chart|type=pie|values=SALES|labels=COUNTRY|title=Sales by Country|>"""
+)
 gui.run(port=6969)
