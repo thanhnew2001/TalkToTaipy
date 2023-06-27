@@ -1,5 +1,6 @@
 from taipy.gui import Gui, notify
 
+import random
 import pandas as pd
 import requests
 
@@ -16,12 +17,27 @@ DATA_PATH = "data.csv"
 CONTEXT_PATH = "context_data.csv"
 SAMPLE_PATH = "sales_data_sample.csv"
 
-df = pd.read_csv(CONTEXT_PATH, sep=";")
+context_data = pd.read_csv(CONTEXT_PATH, sep=";")
 data = pd.read_csv(SAMPLE_PATH, sep=",", encoding="ISO-8859-1")
 
+data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
+data = data.sort_values(by="ORDERDATE")
+data_columns = data.columns.tolist()
+
+transformed_data = data.copy()
+
 context = ""
-for instruction, code in zip(df["instruction"], df["code"]):
+for instruction, code in zip(context_data["instruction"], context_data["code"]):
     context += f"{instruction}\n{code}\n"
+
+context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
+# Replace occurences of the context_columns in context by _
+for column in context_columns:
+    context = context.replace(column, "_")
+
+# For all occurences of _ in context, replace it by a random column from data_columns
+for _ in range(context.count("_")):
+    context = context.replace("_", random.choice(data_columns), 1)
 
 
 def query(payload: dict) -> dict:
@@ -38,7 +54,7 @@ def query(payload: dict) -> dict:
     return response.json()
 
 
-def prompt(input_instruction: str) -> str:
+def plot_prompt(input_instruction: str) -> str:
     """
     Prompts StarCoder to generate Taipy GUI code
 
@@ -63,6 +79,7 @@ def prompt(input_instruction: str) -> str:
                 },
             }
         )[0]["generated_text"]
+        print(output)
         timeout += 1
         final_result += output
 
@@ -70,32 +87,59 @@ def prompt(input_instruction: str) -> str:
     return output_code
 
 
-def on_enter_press(state) -> None:
+def plot(state) -> None:
     """
     Prompt StarCoder to generate Taipy GUI code when user presses enter
 
     Args:
         state (State): Taipy GUI state
     """
-    state.result = prompt(state.instruction)
+    state.result = plot_prompt(state.plot_instruction)
     state.p.update_content(state, state.result)
     notify(state, "success", "App Updated!")
-    print(state.result)
+    print(f"Plot code: {state.result}")
 
 
-instruction = ""
+def modify_data(state) -> None:
+    """
+    Prompts StarCoder to generate pandas code to transform data
+    """
+    data_prompt = f"def transfom(data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
+    output = query(
+        {
+            "inputs": data_prompt,
+            "parameters": {
+                "return_full_text": False,
+            },
+        }
+    )[0]["generated_text"]
+    # Cut everything after the first breakline
+    output = output.split("\n")[0]
+    print(f"Data transformation code: {output}")
+    state.transformed_data = pd.DataFrame(eval(output))
+
+
+data_instruction = ""
+plot_instruction = ""
 result = ""
 
 
 page = """
 # Taipy**Copilot**{: .color-primary}
 
-Enter your instruction here:
-<|{instruction}|input|on_action=on_enter_press|class_name=fullwidth|change_delay=500|>
-
-<|Data|expandable|expanded=False|
+<|Original Data|expandable|expanded=False|
 <|{data}|table|width=100%|page_size=5|>
 |>
+
+Enter your instruction to **modify**{: .color-primary} data here:
+<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=500|>
+
+<|Transformed Data|expandable|expanded=False|
+<|{transformed_data}|table|width=100%|page_size=5|>
+|>
+
+Enter your instruction to **plot**{: .color-primary} data here:
+<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=500|>
 
 <|part|partial={p}|>
 """
