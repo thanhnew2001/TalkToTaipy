@@ -1,6 +1,7 @@
 from taipy.gui import Gui, notify
 
 import random
+import re
 import pandas as pd
 import requests
 
@@ -76,12 +77,15 @@ def plot_prompt(input_instruction: str) -> str:
                 },
             }
         )[0]["generated_text"]
-        print(output)
         timeout += 1
         final_result += output
 
     output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
-    return output_code
+    pattern = r"<.*\|chart\|.*>"
+    if bool(re.search(pattern, output_code)):
+        return output_code
+    else:
+        raise Exception("Generated code is incorrect")
 
 
 def plot(state) -> None:
@@ -95,6 +99,10 @@ def plot(state) -> None:
     state.p.update_content(state, state.result)
     notify(state, "success", "Plot Updated!")
     print(f"Plot code: {state.result}")
+
+
+def on_exception(state, function_name: str, ex: Exception):
+    notify(state, "error", f"An error occured in {function_name}: {ex}")
 
 
 def modify_data(state) -> None:
@@ -138,7 +146,7 @@ page = """
 # Taipy**Copilot**{: .color-primary}
 
 <|Original Data|expandable|expanded=True|
-<|{data}|table|width=100%|page_size=5|>
+<|{data}|table|width=100%|page_size=5|filter=True|>
 |>
 
 ## Enter your instruction to **modify**{: .color-primary} data here:
@@ -148,7 +156,7 @@ page = """
 <|Reset Transformed Data|button|on_action=reset_data|>
 
 <|Transformed Data|expandable|expanded=True|
-<|{transformed_data}|table|width=100%|page_size=5|>
+<|{transformed_data}|table|width=100%|page_size=5|rebuild|filter=True|>
 |>
 
 ## Enter your instruction to **plot**{: .color-primary} data here:
