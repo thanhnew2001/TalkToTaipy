@@ -13,26 +13,12 @@ headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 DATA_PATH = "data.csv"
 
-df = pd.read_csv(DATA_PATH, sep=";")
-data = pd.DataFrame(
-    {
-        "Date": pd.to_datetime(
-            [
-                "2020-01-01",
-                "2020-01-02",
-                "2020-01-03",
-                "2020-01-04",
-                "2020-01-05",
-                "2020-01-06",
-                "2020-01-07",
-            ]
-        ),
-        "Sales": [100, 250, 500, 400, 450, 600, 650],
-        "Revenue": [150, 200, 600, 800, 850, 900, 950],
-        "Energy": ["Oil", "Coal", "Gas", "Nuclear", "Hydro", "Solar", "Wind"],
-        "Usage": [0.33, 0.27, 0.21, 0.06, 0.05, 0.05, 0.03],
-    }
-)
+CONTEXT_PATH = "context_data.csv"
+SAMPLE_PATH = "sales_data_sample.csv"
+
+df = pd.read_csv(CONTEXT_PATH, sep=";")
+data = pd.read_csv(SAMPLE_PATH, sep=",", encoding="ISO-8859-1")
+
 context = ""
 for instruction, code in zip(df["instruction"], df["code"]):
     context += f"{instruction}\n{code}\n"
@@ -108,12 +94,12 @@ Enter your instruction here:
 <|{instruction}|input|on_action=on_enter_press|class_name=fullwidth|change_delay=500|>
 
 <|Data|expandable|expanded=False|
-<|{data[:5]}|table|width=100%|show_all=True|>
+<|{data}|table|width=100%|page_size=5|>
 |>
 
 <|part|partial={p}|>
 """
 
 gui = Gui(page)
-p = gui.add_partial("""<|{data}|chart|mode=lines|x=Date|y=Sales|>""")
+p = gui.add_partial("""""")
 gui.run(port=6969)
