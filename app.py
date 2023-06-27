@@ -96,7 +96,7 @@ def plot(state) -> None:
     """
     state.result = plot_prompt(state.plot_instruction)
     state.p.update_content(state, state.result)
-    notify(state, "success", "App Updated!")
+    notify(state, "success", "Plot Updated!")
     print(f"Plot code: {state.result}")
 
 
@@ -117,8 +117,9 @@ def modify_data(state) -> None:
         }
     )[0]["generated_text"]
     output = output.split("\n")[0]
-    print(f"Data transformation code: {output}")
     state.transformed_data = pd.DataFrame(eval(output))
+    notify(state, "success", "Data Updated!")
+    print(f"Data transformation code: {output}")
 
 
 def reset_data(state) -> None:
@@ -143,7 +144,8 @@ page = """
 <|{data}|table|width=100%|page_size=5|>
 |>
 
-Enter your instruction to **modify**{: .color-primary} data here:
+## Enter your instruction to **modify**{: .color-primary} data here:
+**Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
 
 <|Transformed Data|expandable|expanded=False|
@@ -152,7 +154,8 @@ Enter your instruction to **modify**{: .color-primary} data here:
 
 <|Reset Transformed Data|button|on_action=reset_data|>
 
-Enter your instruction to **plot**{: .color-primary} data here:
+## Enter your instruction to **plot**{: .color-primary} data here:
+**Example:** Plot a pie chart of SALES by COUNTRY titled Sales by Country
 <|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|>
 
 <|part|partial={p}|>
