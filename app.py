@@ -145,11 +145,11 @@ page = """
 **Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
 
+<|Reset Transformed Data|button|on_action=reset_data|>
+
 <|Transformed Data|expandable|expanded=True|
 <|{transformed_data}|table|width=100%|page_size=5|>
 |>
-
-<|Reset Transformed Data|button|on_action=reset_data|>
 
 ## Enter your instruction to **plot**{: .color-primary} data here:
 **Example:** Plot a pie chart of SALES by COUNTRY titled Sales by Country
