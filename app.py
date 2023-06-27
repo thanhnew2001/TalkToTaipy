@@ -103,6 +103,9 @@ def plot(state) -> None:
 def modify_data(state) -> None:
     """
     Prompts StarCoder to generate pandas code to transform data
+
+    Args:
+        state (State): Taipy GUI state
     """
     data_prompt = f"def transfom(data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
     output = query(
@@ -113,10 +116,19 @@ def modify_data(state) -> None:
             },
         }
     )[0]["generated_text"]
-    # Cut everything after the first breakline
     output = output.split("\n")[0]
     print(f"Data transformation code: {output}")
     state.transformed_data = pd.DataFrame(eval(output))
+
+
+def reset_data(state) -> None:
+    """
+    Resets transformed data to original data
+
+    Args:
+        state (State): Taipy GUI state
+    """
+    state.transformed_data = state.data.copy()
 
 
 data_instruction = ""
@@ -137,6 +149,8 @@ Enter your instruction to **modify**{: .color-primary} data here:
 <|Transformed Data|expandable|expanded=False|
 <|{transformed_data}|table|width=100%|page_size=5|>
 |>
+
+<|Reset Transformed Data|button|on_action=reset_data|>
 
 Enter your instruction to **plot**{: .color-primary} data here:
 <|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|>
