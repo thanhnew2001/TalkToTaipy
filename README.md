@@ -40,7 +40,7 @@ git clone https://github.com/AlexandreSajus/TaipyLLM.git
 pip install -r requirements.txt
 ```
 
-**3.** Add your Hugging Face API key to `secret.txt` text file
+**3.** Create a `secret.txt` text file next to `app.py` with your Hugging Face API key in it
 
 **4.** Run `app.py`
 
