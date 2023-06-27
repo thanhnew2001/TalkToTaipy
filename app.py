@@ -132,14 +132,14 @@ page = """
 |>
 
 Enter your instruction to **modify**{: .color-primary} data here:
-<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=500|>
+<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
 
 <|Transformed Data|expandable|expanded=False|
 <|{transformed_data}|table|width=100%|page_size=5|>
 |>
 
 Enter your instruction to **plot**{: .color-primary} data here:
-<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=500|>
+<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|>
 
 <|part|partial={p}|>
 """
