@@ -135,6 +135,7 @@ def reset_data(state) -> None:
         state (State): Taipy GUI state
     """
     state.transformed_data = state.data.copy()
+    state.p.update_content(state, "")
 
 
 data_instruction = ""
@@ -167,7 +168,5 @@ page = """
 """
 
 gui = Gui(page)
-p = gui.add_partial(
-    """<|{transformed_data.groupby('COUNTRY').SALES.sum().reset_index()}|chart|type=pie|values=SALES|labels=COUNTRY|title=Sales by Country|>"""
-)
-gui.run(port=6969)
+p = gui.add_partial("""""")
+gui.run()
