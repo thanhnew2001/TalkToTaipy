@@ -1,24 +1,44 @@
 # TaipyCopilot
 
+**Manipulate and visualize data with only natural language prompts.**
+
 <p align="center">
-  <img src="media/app_pie.png" alt="App" width="100%"/>
+  <img src="media/animated.gif" alt="Example" width="100%"/>
 </p>
 
-Converts English sentences to Taipy Web App elements
+## Usage:
 
-## Current Scope:
+TaipyCopilot works with few-shot learning on the open-source StarCoder model.
 
-TaipyCopilot works with few-shot learning on StarCoder.
+Using the App works in three steps:
 
-Currently supports:
-- line plots with multiple lines, colors and line styles
-- bar charts with multiple bars, colors and orientation
-- scatter plots with multiple data columns, colors
-- title
-- simple histograms
-- simple pie charts
+**1.** The App will show you the sample dataset you are working with
 
-Known issues:
+<p align="center">
+  <img src="media/original_data.png" alt="Original Data" width="50%"/>
+</p>
+
+**2.** You can enter instructions to modify this data (e.g. "Sum SALES grouped by COUNTRY")
+
+<p align="center">
+  <img src="media/modify_data.png" alt="Modify Data" width="50%"/>
+</p>
+
+  This will modify the data and show you the result
+
+  You can keep entering prompts to further modify the data and you can also reset the data using the "Reset" button
+
+**3.** You can enter instructions to visualize the data (e.g. "Plot a pie chart of SALES by COUNTRY")
+
+<p align="center">
+  <img src="media/plot.png" alt="Plot" width="50%"/>
+</p>
+
+  This will plot the transformed data according to your instructions
+
+## Known Issues
+
+- Complex data manipulation prompts such as filtering using a date range are not supported yet
 - When a prompt results in incorrect code, the app will show an error message and get stuck. To fix this, simply re-prompt and refresh the page.
 - A too long prompt will cause StarCoder to repeat unfinished code which will cause a syntax error
 

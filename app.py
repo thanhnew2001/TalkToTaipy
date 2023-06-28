@@ -1,7 +1,7 @@
 from taipy.gui import Gui, notify
 
-import random
 import re
+import random
 import pandas as pd
 import requests
 
@@ -9,30 +9,25 @@ SECRET_PATH = "secret.txt"
 with open(SECRET_PATH, "r") as f:
     API_TOKEN = f.read()
 
-
 API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
-DATA_PATH = "data.csv"
-
 CONTEXT_PATH = "context_data.csv"
-SAMPLE_PATH = "sales_data_sample.csv"
+DATA_PATH = "sales_data_sample.csv"
 
 context_data = pd.read_csv(CONTEXT_PATH, sep=";")
-data = pd.read_csv(SAMPLE_PATH, sep=",", encoding="ISO-8859-1")
+data = pd.read_csv(DATA_PATH, sep=",", encoding="ISO-8859-1")
 
 data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
 data = data.sort_values(by="ORDERDATE")
 
-transformed_data = data.copy()
-
 data_columns = data.columns.tolist()
 context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
 
+# Replace column names in the context with column names from the data
 context = ""
 for instruction, code in zip(context_data["instruction"], context_data["code"]):
     example = f"{instruction}\n{code}\n"
-    # Replace context column names with data column names
     for column in context_columns:
         example = example.replace(column, random.choice(data_columns))
     context += example
@@ -81,6 +76,8 @@ def plot_prompt(input_instruction: str) -> str:
         final_result += output
 
     output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
+
+    # Check if the output code is valid
     pattern = r"<.*\|chart\|.*>"
     if bool(re.search(pattern, output_code)):
         return output_code
@@ -90,7 +87,7 @@ def plot_prompt(input_instruction: str) -> str:
 
 def plot(state) -> None:
     """
-    Prompt StarCoder to generate Taipy GUI code when user presses enter
+    Prompt StarCoder to generate Taipy GUI code when user inputs plot instruction
 
     Args:
         state (State): Taipy GUI state
@@ -101,7 +98,15 @@ def plot(state) -> None:
     print(f"Plot code: {state.result}")
 
 
-def on_exception(state, function_name: str, ex: Exception):
+def on_exception(state, function_name: str, ex: Exception) -> None:
+    """
+    Catches exceptions and notifies user in Taipy GUI
+
+    Args:
+        state (State): Taipy GUI state
+        function_name (str): Name of function where exception occured
+        ex (Exception): Exception
+    """
     notify(state, "error", f"An error occured in {function_name}: {ex}")
 
 
@@ -129,7 +134,7 @@ def modify_data(state) -> None:
 
 def reset_data(state) -> None:
     """
-    Resets transformed data to original data
+    Resets transformed data to original data and resets plot
 
     Args:
         state (State): Taipy GUI state
@@ -138,6 +143,7 @@ def reset_data(state) -> None:
     state.p.update_content(state, "")
 
 
+transformed_data = data.copy()
 data_instruction = ""
 plot_instruction = ""
 result = ""
@@ -168,5 +174,5 @@ page = """
 """
 
 gui = Gui(page)
-p = gui.add_partial("""""")
+p = gui.add_partial("")
 gui.run()
