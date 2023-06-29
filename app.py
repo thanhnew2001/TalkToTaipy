@@ -76,6 +76,7 @@ def plot_prompt(input_instruction: str) -> str:
         final_result += output
 
     output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
+    print(f"Plot code: {output_code}")
 
     # Check if the output code is valid
     pattern = r"<.*\|chart\|.*>"
@@ -95,7 +96,6 @@ def plot(state) -> None:
     state.result = plot_prompt(state.plot_instruction)
     state.p.update_content(state, state.result)
     notify(state, "success", "Plot Updated!")
-    print(f"Plot code: {state.result}")
 
 
 def on_exception(state, function_name: str, ex: Exception) -> None:
@@ -117,19 +117,34 @@ def modify_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    data_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
-    output = query(
-        {
-            "inputs": data_prompt,
-            "parameters": {
-                "return_full_text": False,
-            },
-        }
-    )[0]["generated_text"]
-    output = output.split("\n")[0]
-    state.transformed_data = pd.DataFrame(eval("state." + output))
-    notify(state, "success", "Data Updated!")
-    print(f"Data transformation code: {output}")
+    current_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
+    output = ""
+    final_result = ""
+
+    # Re-query until the output contains the closing tag
+    timeout = 0
+    while "\n" not in output and timeout < 10:
+        output = query(
+            {
+                "inputs": current_prompt + output,
+                "parameters": {
+                    "return_full_text": False,
+                },
+            }
+        )[0]["generated_text"]
+        timeout += 1
+        final_result += output
+    final_result = final_result.split("\n")[0]
+
+    if "groupby" in final_result and "reset_index" not in final_result:
+        final_result = f"{final_result}.reset_index()"
+
+    print(f"Data transformation code: {final_result}")
+    try:
+        state.transformed_data = pd.DataFrame(eval("state." + final_result))
+        notify(state, "success", f"Data Updated with code:{final_result}")
+    except Exception as ex:
+        notify(state, "error", f"Error with code {final_result} --- {ex}")
 
 
 def reset_data(state) -> None:
