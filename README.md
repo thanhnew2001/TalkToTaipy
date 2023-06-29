@@ -38,7 +38,6 @@ Using the App works in three steps:
 
 ## Known Issues
 
-- Complex data manipulation prompts such as filtering using a date range are not supported yet
 - When a prompt results in incorrect code, the app will show an error message and get stuck. To fix this, simply re-prompt and refresh the page.
 - A too long prompt will cause StarCoder to repeat unfinished code which will cause a syntax error
 
