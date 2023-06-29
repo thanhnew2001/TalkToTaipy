@@ -14,6 +14,11 @@ headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 CONTEXT_PATH = "context_data.csv"
 DATA_PATH = "sales_data_sample.csv"
+PROMPT_PATH = "data_prompt.txt"
+
+# Read prompt from file
+with open(PROMPT_PATH, "r") as f:
+    PROMPT = f.read()
 
 context_data = pd.read_csv(CONTEXT_PATH, sep=";")
 data = pd.read_csv(DATA_PATH, sep=",", encoding="ISO-8859-1")
@@ -117,19 +122,39 @@ def modify_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    data_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
-    output = query(
-        {
-            "inputs": data_prompt,
-            "parameters": {
-                "return_full_text": False,
-            },
-        }
-    )[0]["generated_text"]
-    output = output.split("\n")[0]
-    state.transformed_data = pd.DataFrame(eval("state." + output))
+    # Replace in PROMPT _ with the data instruction
+    data_prompt = PROMPT.replace("@", state.data_instruction)
+    output = ""
+    final_result = data_prompt
+
+    timeout = 0
+    while "return transformed_data" not in final_result and timeout < 10:
+        output = query(
+            {
+                "inputs": data_prompt + output,
+                "parameters": {
+                    "return_full_text": False,
+                },
+            }
+        )[0]["generated_text"]
+        timeout += 1
+        final_result += output
+
+    # In final_result, parse line by line and remove lines after the return statement
+    final_result = final_result.split("\n")
+    for i, line in enumerate(final_result):
+        if "return" in line:
+            final_result = final_result[: i + 1]
+            break
+    # Rejoin the lines
+    final_result = "\n".join(final_result)
+    # Execute the code
+    exec(
+        final_result
+        + "\nstate.transformed_data = pd.DataFrame(transform(state.transformed_data))"
+    )
     notify(state, "success", "Data Updated!")
-    print(f"Data transformation code: {output}")
+    print(f"Data transformation code: {final_result}")
 
 
 def reset_data(state) -> None:

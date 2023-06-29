@@ -1,0 +1,5 @@
+def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply the following transformation to transformed_data:
+    @
+    """
