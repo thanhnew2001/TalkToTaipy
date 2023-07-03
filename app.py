@@ -83,14 +83,15 @@ def plot_prompt(input_instruction: str) -> str:
         )[0]["generated_text"]
         timeout += 1
         final_result += output
-    layout = layout_prompt(input_instruction)
-    output_code = f"""<{final_result.split("<")[1].split(">")[0]}layout={layout}|>"""
+    layout = eval(layout_prompt(input_instruction))
+    output_code = f"""<{final_result.split("<")[1].split(">")[0]}"""
+    output_code += "layout={layout}|>"
     print(f"Plot code: {output_code}")
 
     # Check if the output code is valid
     pattern = r"<.*\|chart\|.*>"
     if bool(re.search(pattern, output_code)):
-        return output_code
+        return output_code, layout
     else:
         raise Exception("Generated code is incorrect")
 
@@ -122,6 +123,8 @@ def layout_prompt(input_instruction: str) -> str:
         )[0]["generated_text"]
         timeout += 1
         final_result += output
+    # Keep everything before the first breakline
+    final_result = final_result.split("\n")[0]
     # Keep everything before the last closing bracket
     output_code = final_result.split("}")
     output_code.pop()
@@ -137,7 +140,7 @@ def plot(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    state.result = plot_prompt(state.plot_instruction)
+    state.result, state.layout = plot_prompt(state.plot_instruction)
     state.p.update_content(state, state.result)
     notify(state, "success", "Plot Updated!")
 
@@ -200,12 +203,14 @@ def reset_data(state) -> None:
     """
     state.transformed_data = state.data.copy()
     state.p.update_content(state, "")
+    state.layout = {}
 
 
 transformed_data = data.copy()
 data_instruction = ""
 plot_instruction = ""
 result = ""
+layout = {}
 
 
 page = """
@@ -233,7 +238,5 @@ page = """
 """
 
 gui = Gui(page)
-p = gui.add_partial(
-    """<|{transformed_data}|chart|type=lines|x=ORDERDATE|y=SALES|layout={"xaxis": { "title": "temps" }}|>"""
-)
+p = gui.add_partial("")
 gui.run()
