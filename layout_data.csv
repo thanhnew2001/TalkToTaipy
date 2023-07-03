@@ -1,0 +1,34 @@
+instruction;code
+Plot Sales according to Date in a line chart;{}
+Plot Sales according to Date with xlabel time;{"xaxis": { "title": "time" }}
+Plot Sales according to Date with Vente as y title;{"yaxis": { "title": "Vente" }}
+Plot Sales according to Date in a line chart titled Sales according to Revenue;{}
+Plot Sales and Revenue according to Date;{}
+Plot Sales and Revenue according to Date with temps as xlabel;{"xaxis": { "title": "temps" }}
+Plot Sales according to Date on a Dashed line;{}
+Plot Revenue by Date on a dotted line;{}
+Plot Sales by Date in Red with generated money on the xaxis and date on y axis;{"xaxis": { "title": "generated money" }, "yaxis": { "title": "date" }}
+Plot Revenue according to Date in yellow with Argent on the yaxis;{"yaxis": { "title": "Argent" }}
+Plot Revenue according to Date in yellow titled Revenue Plot;{}
+Plot Sales in blue and Revenue in green according to Date;{}
+Plot Revenue by Date in a red dashed line and Sales in a yellow Dotted line;{}
+Display Date according to Sales;{}
+Plot in a bar chart the Sales according to Date;{}
+Plot in a bar chart the Sales according to Date and Revenue according to Date;{}
+Plot Sales and Revenue by Date in a bar chart;{}
+Plot Sales and Revenue by Date in a stacked bar chart;{"barmode": "stacked"}
+Plot Sales and Revenue acccording to Date in a stacked bar chart;{"barmode": "stacked"}
+Plot in a bar chart the Sales according to Date and Revenue according to Date titled Finance;{}
+Plot in a scatter plot Sales according to Date;{}
+Draw Sales and Revenue by Date in a scatter plot;{}
+Plot Revenue in green points and Sales in yellow points by Date;{}
+Plot a histogram of Sales;{}
+Display a horizontal histogram of Sales;{}
+Plot the distribution of Sales and Revenue;{}
+Plot the distribution of Sales and Revenue titled Sales and Revenue Distribution;{}
+Display a horizontal distribution of Sales and Revenue titled Sales and Revenue Distribution;{}
+Plot a pie chart of Sales by Date;{}
+Draw a pie chart of Sales by Date titled Sales Pie Chart;{}
+Plot a pie chart of Revenue by Date;{}
+Plot a pie chart of Usage by Energy;{}
+Plot a pie chart of Usage by Energy titled World Energy Distribution;{}

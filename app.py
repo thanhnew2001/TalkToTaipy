@@ -13,9 +13,11 @@ API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
 CONTEXT_PATH = "context_data.csv"
+LAYOUT_PATH = "layout_data.csv"
 DATA_PATH = "sales_data_sample.csv"
 
 context_data = pd.read_csv(CONTEXT_PATH, sep=";")
+layout_data = pd.read_csv(LAYOUT_PATH, sep=";")
 data = pd.read_csv(DATA_PATH, sep=",", encoding="ISO-8859-1")
 
 data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
@@ -31,6 +33,13 @@ for instruction, code in zip(context_data["instruction"], context_data["code"]):
     for column in context_columns:
         example = example.replace(column, random.choice(data_columns))
     context += example
+
+layout_context = ""
+for instruction, code in zip(layout_data["instruction"], layout_data["code"]):
+    example = f"{instruction}\n{code}\n"
+    for column in context_columns:
+        example = example.replace(column, random.choice(data_columns))
+    layout_context += example
 
 
 def query(payload: dict) -> dict:
@@ -74,8 +83,8 @@ def plot_prompt(input_instruction: str) -> str:
         )[0]["generated_text"]
         timeout += 1
         final_result += output
-
-    output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
+    layout = layout_prompt(input_instruction)
+    output_code = f"""<{final_result.split("<")[1].split(">")[0]}layout={layout}|>"""
     print(f"Plot code: {output_code}")
 
     # Check if the output code is valid
@@ -84,6 +93,41 @@ def plot_prompt(input_instruction: str) -> str:
         return output_code
     else:
         raise Exception("Generated code is incorrect")
+
+
+def layout_prompt(input_instruction: str) -> str:
+    """
+    Prompts StarCoder to generate Taipy GUI layout code
+
+    Args:
+        instuction (str): Instruction for StarCoder
+
+    Returns:
+        str: Taipy GUI layout code
+    """
+    current_prompt = f"{layout_context}\n{input_instruction}\n"
+    output = ""
+    final_result = ""
+
+    # Re-query until the output contains the closing tag
+    timeout = 0
+    while "}" not in output and timeout < 5:
+        output = query(
+            {
+                "inputs": current_prompt + output,
+                "parameters": {
+                    "return_full_text": False,
+                },
+            }
+        )[0]["generated_text"]
+        timeout += 1
+        final_result += output
+    # Keep everything before the last closing bracket
+    output_code = final_result.split("}")
+    output_code.pop()
+    output_code = "}".join(output_code) + "}"
+    print(f"Layout code: {output_code}")
+    return output_code
 
 
 def plot(state) -> None:
@@ -189,5 +233,7 @@ page = """
 """
 
 gui = Gui(page)
-p = gui.add_partial("")
+p = gui.add_partial(
+    """<|{transformed_data}|chart|type=lines|x=ORDERDATE|y=SALES|layout={"xaxis": { "title": "temps" }}|>"""
+)
 gui.run()

@@ -1,11 +1,15 @@
 instruction;code
 Plot Sales according to Date in a line chart;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|>
+Plot Sales according to Date with xlabel time;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|>
+Plot Sales according to Date with Vente as y title;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|>
 Plot Sales according to Date in a line chart titled ""Sales according to Revenue""";<|{transformed_data}|chart|type=lines|x=Date|y=Sales|title=Sales according to Revenue|>
 Plot Sales and Revenue according to Date;<|{transformed_data}|chart|type=lines|x=Date|y[1]=Sales|y[2]=Revenue|>
+Plot Sales and Revenue according to Date with temps as xlabel;<|{transformed_data}|chart|type=lines|x=Date|y[1]=Sales|y[2]=Revenue|>
 Plot Sales according to Date on a Dashed line;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|line=dash|>
 Plot Revenue by Date on a dotted line;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|line=dot|>
 Plot Sales by Date in Red;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|color=Red|>
 Plot Revenue according to Date in yellow;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|color=Yellow|>
+Plot Revenue according to Date in yellow with Argent on the yaxis;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|color=Yellow|>
 Plot Revenue according to Date in yellow titled Revenue Plot;<|{transformed_data}|chart|type=lines|x=Date|y=Sales|color=Yellow|title=Revenue Plot>
 Plot Sales in blue and Revenue in green according to Date;<|{transformed_data}|chart|type=lines|x=Date|y[1]=Sales|y[2]=Revenue|color[1]=blue|color[2]=green|>
 Plot Revenue by Date in a red dashed line and Sales in a yellow Dotted line;<|{transformed_data}|chart|type=lines|x=Date|y[1]=Revenue|y[2]=Sales|line[1]=dash|line[2]=dot|color[1]=red|color[2]=yellow|>
@@ -13,6 +17,8 @@ Display Date according to Sales;<|{transformed_data}|chart|type=lines|x=Date|y=S
 Plot in a bar chart the Sales according to Date;<|{transformed_data}|chart|type=bar|x=Date|y=Sales|>
 Plot in a bar chart the Sales according to Date and Revenue according to Date;<|{transformed_data}|chart|type=bar|x=Date|y[1]=Sales|y[2]=Revenue|>
 Plot Sales and Revenue by Date in a bar chart;<|{transformed_data}|chart|type=bar|x=Date|y[1]=Sales|y[2]=Revenue|>
+Plot Sales and Revenue by Date in a stacked bar chart;<|{transformed_data}|chart|type=bar|x=Date|y[1]=Sales|y[2]=Revenue|>
+Plot Sales and Revenue acccording to Date in a stacked bar chart;<|{transformed_data}|chart|type=bar|x=Date|y[1]=Sales|y[2]=Revenue|>
 Plot in a bar chart the Sales according to Date and Revenue according to Date titled Finance;<|{transformed_data}|chart|type=bar|x=Date|y[1]=Sales|y[2]=Revenue|title=Finance|>
 Plot in a scatter plot Sales according to Date;<|{transformed_data}|chart|type=scatter|mode=markers|x=Date|y=Sales|>
 Draw Sales and Revenue by Date in a scatter plot;<|{transformed_data}|chart|type=scatter|mode=markers|x=Date|y[1]=Sales|y[2]=Revenue|>
