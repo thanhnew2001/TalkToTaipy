@@ -12,6 +12,20 @@ with open(SECRET_PATH, "r") as f:
 API_URL = "https://api-inference.huggingface.co/models/bigcode/starcoder"
 headers = {"Authorization": f"Bearer {API_TOKEN}"}
 
+LOG_PATH = "logs.txt"
+
+
+def log(message: str) -> None:
+    """
+    Logs message to file
+
+    Args:
+        message (str): Message to log
+    """
+    with open(LOG_PATH, "a") as f:
+        f.write(message + "\n")
+
+
 CONTEXT_PATH = "context_data.csv"
 DATA_PATH = "sales_data_sample.csv"
 
@@ -22,6 +36,7 @@ data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
 data = data.sort_values(by="ORDERDATE")
 
 data_columns = data.columns.tolist()
+data_columns_str = " ".join(data.columns.tolist())
 context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
 
 # Replace column names in the context with column names from the data
@@ -77,6 +92,7 @@ def plot_prompt(input_instruction: str) -> str:
 
     output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
     print(f"Plot code: {output_code}")
+    log(f"[PLOT] {output_code}")
 
     # Check if the output code is valid
     pattern = r"<.*\|chart\|.*>"
@@ -93,9 +109,11 @@ def plot(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
+    log(f"[PLOT] {state.plot_instruction}")
     state.result = plot_prompt(state.plot_instruction)
     state.p.update_content(state, state.result)
     notify(state, "success", "Plot Updated!")
+    log(f"[PLOT] Plot Successful!")
 
 
 def on_exception(state, function_name: str, ex: Exception) -> None:
@@ -117,7 +135,8 @@ def modify_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    current_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
+    log(f"[DATA] {state.data_instruction}")
+    current_prompt = f"def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  # transformed_data has columns: {data_columns_str}\n  return "
     output = ""
     final_result = ""
 
@@ -140,9 +159,11 @@ def modify_data(state) -> None:
         final_result = f"{final_result}.reset_index()"
 
     print(f"Data transformation code: {final_result}")
+    log(f"[DATA] {final_result}")
     try:
         state.transformed_data = pd.DataFrame(eval("state." + final_result))
         notify(state, "success", f"Data Updated with code:{final_result}")
+        log(f"[DATA] Data Manipulation Successful!")
     except Exception as ex:
         notify(state, "error", f"Error with code {final_result} --- {ex}")
 
@@ -154,40 +175,68 @@ def reset_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
+    log("[DATA] Reset Data")
     state.transformed_data = state.data.copy()
     state.p.update_content(state, "")
+
+
+def report_feedback(state) -> None:
+    """
+    Saves user feedback to file
+
+    Args:
+        state (State): Taipy GUI state
+    """
+    log(f"[REPORT] {state.report}")
+    notify(state, "success", "Feedback Submitted!")
 
 
 transformed_data = data.copy()
 data_instruction = ""
 plot_instruction = ""
 result = ""
+report = ""
 
 
 page = """
-# Taipy**Copilot**{: .color-primary}
+# TalkTo**Taipy**{: .color-primary} Alpha Testing
+
+## **Modify**{: .color-primary} and **Plot**{: .color-primary} your data using natural language
+
+<p align="center">
+  <img src="media/animated.gif" alt="Example" width="80%"/>
+</p>
+
+## Report issues or send feedback here:
+
+<|{report}|input|on_action=report_feedback|class_name=fullwidth|change_delay=1000|label=Enter your feedback here|>
+
+- Long prompts might cause errors
+
+- If an error stays on the page, try refreshing the page
 
 <|Original Data|expandable|expanded=True|
-<|{data}|table|width=100%|page_size=5|filter=True|>
+<|{data}|table|width=100%|page_size=5|>
 |>
 
-## Enter your instruction to **modify**{: .color-primary} data here:
+## Enter your instruction to **modify**{: .color-primary} the dataset here:
 **Example:** Sum SALES grouped by COUNTRY
-<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
+<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your data manipulation instruction here|>
 
 <|Reset Transformed Data|button|on_action=reset_data|>
 
 <|Transformed Data|expandable|expanded=True|
-<|{transformed_data}|table|width=100%|page_size=5|rebuild|filter=True|>
+<|{transformed_data}|table|width=100%|page_size=5|rebuild|>
 |>
 
 ## Enter your instruction to **plot**{: .color-primary} data here:
 **Example:** Plot a pie chart of SALES by COUNTRY titled Sales by Country
-<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|>
+<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|label=Enter your plot instruction here|>
 
 <|part|partial={p}|>
 """
 
+log("[SYSTEM] Session Start")
 gui = Gui(page)
 p = gui.add_partial("")
-gui.run()
+gui.run(title="Talk To Taipy (alpha)")
