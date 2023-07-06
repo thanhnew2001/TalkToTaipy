@@ -36,6 +36,7 @@ data["ORDERDATE"] = pd.to_datetime(data["ORDERDATE"])
 data = data.sort_values(by="ORDERDATE")
 
 data_columns = data.columns.tolist()
+data_columns_str = " ".join(data.columns.tolist())
 context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
 
 # Replace column names in the context with column names from the data
@@ -135,7 +136,7 @@ def modify_data(state) -> None:
         state (State): Taipy GUI state
     """
     log(f"[DATA] {state.data_instruction}")
-    current_prompt = f"def transfom(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  return "
+    current_prompt = f"def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  # transformed_data has columns: {data_columns_str}\n  return "
     output = ""
     final_result = ""
 
@@ -208,7 +209,7 @@ page = """
 
 ## Report issues or send feedback here:
 
-<|{report}|input|on_action=report_feedback|class_name=fullwidth|change_delay=1000|>
+<|{report}|input|on_action=report_feedback|class_name=fullwidth|change_delay=1000|label=Enter your feedback here|>
 
 - Long prompts might cause errors
 
@@ -220,7 +221,7 @@ page = """
 
 ## Enter your instruction to **modify**{: .color-primary} the dataset here:
 **Example:** Sum SALES grouped by COUNTRY
-<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
+<|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your data manipulation instruction here|>
 
 <|Reset Transformed Data|button|on_action=reset_data|>
 
@@ -230,7 +231,7 @@ page = """
 
 ## Enter your instruction to **plot**{: .color-primary} data here:
 **Example:** Plot a pie chart of SALES by COUNTRY titled Sales by Country
-<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|>
+<|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|label=Enter your plot instruction here|>
 
 <|part|partial={p}|>
 """
@@ -238,4 +239,4 @@ page = """
 log("[SYSTEM] Session Start")
 gui = Gui(page)
 p = gui.add_partial("")
-gui.run()
+gui.run(title="Talk To Taipy (alpha)")
