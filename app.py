@@ -165,20 +165,32 @@ result = ""
 
 
 page = """
-# Taipy**Copilot**{: .color-primary}
+# Taipy**Copilot**{: .color-primary} Alpha Testing
+
+## **Modify**{: .color-primary} and **Plot**{: .color-primary} your data using natural language
+
+<p align="center">
+  <img src="media/animated.gif" alt="Example" width="80%"/>
+</p>
+
+## **Please report errors and send your feedback by creating an issue on <a href="https://github.com/AlexandreSajus/TaipyCopilot/issues" target="_blank">GitHub</a>**
+
+- Long prompts might cause errors
+
+- If an error stays on the page, try refreshing the page
 
 <|Original Data|expandable|expanded=True|
-<|{data}|table|width=100%|page_size=5|filter=True|>
+<|{data}|table|width=100%|page_size=5|>
 |>
 
-## Enter your instruction to **modify**{: .color-primary} data here:
+## Enter your instruction to **modify**{: .color-primary} the dataset here:
 **Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|>
 
 <|Reset Transformed Data|button|on_action=reset_data|>
 
 <|Transformed Data|expandable|expanded=True|
-<|{transformed_data}|table|width=100%|page_size=5|rebuild|filter=True|>
+<|{transformed_data}|table|width=100%|page_size=5|rebuild|>
 |>
 
 ## Enter your instruction to **plot**{: .color-primary} data here:
