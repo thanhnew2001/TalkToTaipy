@@ -223,7 +223,7 @@ page = """
 **Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your data manipulation instruction here|>
 
-<|Reset Transformed Data|button|on_action=reset_data|>
+<|Reset to Original Data|button|on_action=reset_data|>
 
 <|Transformed Data|expandable|expanded=True|
 <|{transformed_data}|table|width=100%|page_size=5|rebuild|>
