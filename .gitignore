@@ -161,3 +161,6 @@ cython_debug/
 
 # API Keys
 secret.txt
+
+# logs
+logs/

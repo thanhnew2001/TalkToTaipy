@@ -162,7 +162,7 @@ def modify_data(state) -> None:
     log(f"[DATA] {final_result}")
     try:
         state.transformed_data = pd.DataFrame(eval("state." + final_result))
-        notify(state, "success", f"Data Updated with code:{final_result}")
+        notify(state, "success", f"Data Updated!")
         log(f"[DATA] Data Manipulation Successful!")
     except Exception as ex:
         notify(state, "error", f"Error with code {final_result} --- {ex}")
@@ -203,11 +203,28 @@ page = """
 
 ## **Modify**{: .color-primary} and **Plot**{: .color-primary} your data using natural language
 
+<|How to use (READ ME FIRST)|expandable|expanded=True|
+
+**1.** Enter your instruction to **modify**{: .color-primary} the dataset in the first text box
+
 <p align="center">
-  <img src="media/animated.gif" alt="Example" width="80%"/>
+  <img src="media/step1.gif" alt="Step 1" width="60%"/>
 </p>
 
-## Report issues or send feedback here:
+        - This will modify the original data into the transformed data table
+        - You can keep entering instructions to modify the data 
+        - or click the "Reset to Original Data" button to reset the data to the original data.
+
+**2.** Enter your instruction to **plot**{: .color-primary} the data in the second text box
+
+<p align="center">
+  <img src="media/step2.gif" alt="Step 2" width="60%"/>
+</p>
+
+        - This will plot the data using the plot instruction.
+
+
+3. Report issues or send feedback here:
 
 <|{report}|input|on_action=report_feedback|class_name=fullwidth|change_delay=1000|label=Enter your feedback here|>
 
@@ -215,11 +232,13 @@ page = """
 
 - If an error stays on the page, try refreshing the page
 
+|>
+
 <|Original Data|expandable|expanded=True|
 <|{data}|table|width=100%|page_size=5|>
 |>
 
-## Enter your instruction to **modify**{: .color-primary} the dataset here:
+## 1. Enter your instruction to **modify**{: .color-primary} the dataset here:
 **Example:** Sum SALES grouped by COUNTRY
 <|{data_instruction}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your data manipulation instruction here|>
 
@@ -229,7 +248,7 @@ page = """
 <|{transformed_data}|table|width=100%|page_size=5|rebuild|>
 |>
 
-## Enter your instruction to **plot**{: .color-primary} data here:
+## 2. Enter your instruction to **plot**{: .color-primary} data here:
 **Example:** Plot a pie chart of SALES by COUNTRY titled Sales by Country
 <|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|label=Enter your plot instruction here|>
 
