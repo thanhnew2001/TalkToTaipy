@@ -15,7 +15,7 @@ headers = {"Authorization": f"Bearer {API_TOKEN}"}
 LOG_PATH = "logs.txt"
 
 
-def log(message: str) -> None:
+def log(state, message: str) -> None:
     """
     Logs message to file
 
@@ -24,6 +24,8 @@ def log(message: str) -> None:
     """
     with open(LOG_PATH, "a") as f:
         f.write(message + "\n")
+
+    state.logs = state.logs + [message]
 
 
 CONTEXT_PATH = "context_data.csv"
@@ -62,12 +64,13 @@ def query(payload: dict) -> dict:
     return response.json()
 
 
-def plot_prompt(input_instruction: str) -> str:
+def plot_prompt(state, input_instruction: str) -> str:
     """
     Prompts StarCoder to generate Taipy GUI code
 
     Args:
-        instuction (str): Instruction for StarCoder
+        state (State): Taipy GUI state
+        input_instruction (str): Instruction for StarCoder
 
     Returns:
         str: Taipy GUI code
@@ -92,7 +95,7 @@ def plot_prompt(input_instruction: str) -> str:
 
     output_code = f"""<{final_result.split("<")[1].split(">")[0]}>"""
     print(f"Plot code: {output_code}")
-    log(f"[PLOT] {output_code}")
+    log(state, f"[PLOT] {output_code}")
 
     # Check if the output code is valid
     pattern = r"<.*\|chart\|.*>"
@@ -109,11 +112,11 @@ def plot(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    log(f"[PLOT] {state.plot_instruction}")
-    state.result = plot_prompt(state.plot_instruction)
+    log(state, f"[PLOT] {state.plot_instruction}")
+    state.result = plot_prompt(state, state.plot_instruction)
     state.p.update_content(state, state.result)
     notify(state, "success", "Plot Updated!")
-    log(f"[PLOT] Plot Successful!")
+    log(state, f"[PLOT] Plot Successful!")
 
 
 def on_exception(state, function_name: str, ex: Exception) -> None:
@@ -135,7 +138,7 @@ def modify_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    log(f"[DATA] {state.data_instruction}")
+    log(state, f"[DATA] {state.data_instruction}")
     current_prompt = f"def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  # transformed_data has columns: {data_columns_str}\n  return "
     output = ""
     final_result = ""
@@ -159,11 +162,11 @@ def modify_data(state) -> None:
         final_result = f"{final_result}.reset_index()"
 
     print(f"Data transformation code: {final_result}")
-    log(f"[DATA] {final_result}")
+    log(state, f"[DATA] {final_result}")
     try:
         state.transformed_data = pd.DataFrame(eval("state." + final_result))
         notify(state, "success", f"Data Updated!")
-        log(f"[DATA] Data Manipulation Successful!")
+        log(state, f"[DATA] Data Manipulation Successful!")
     except Exception as ex:
         notify(state, "error", f"Error with code {final_result} --- {ex}")
 
@@ -175,7 +178,7 @@ def reset_data(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    log("[DATA] Reset Data")
+    log(state, "[DATA] Reset Data")
     state.transformed_data = state.data.copy()
     state.p.update_content(state, "")
 
@@ -187,10 +190,11 @@ def report_feedback(state) -> None:
     Args:
         state (State): Taipy GUI state
     """
-    log(f"[REPORT] {state.report}")
+    log(state, f"[REPORT] {state.report}")
     notify(state, "success", "Feedback Submitted!")
 
 
+logs = []
 transformed_data = data.copy()
 data_instruction = ""
 plot_instruction = ""
@@ -253,9 +257,12 @@ page = """
 <|{plot_instruction}|input|on_action=plot|class_name=fullwidth|change_delay=1000|label=Enter your plot instruction here|>
 
 <|part|partial={p}|>
+
+<|Debug Logs|expandable|expanded=True|
+<|{logs}|table|width=100%|rebuild|>
+|>
 """
 
-log("[SYSTEM] Session Start")
 gui = Gui(page)
 p = gui.add_partial("")
 gui.run(title="Talk To Taipy (alpha)")
