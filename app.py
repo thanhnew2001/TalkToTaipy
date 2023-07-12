@@ -25,7 +25,7 @@ def log(state, message: str) -> None:
     with open(LOG_PATH, "a") as f:
         f.write(message + "\n")
 
-    state.logs = state.logs + [message]
+    state.logs = [message] + state.logs
 
 
 CONTEXT_PATH = "context_data.csv"
@@ -41,13 +41,22 @@ data_columns = data.columns.tolist()
 data_columns_str = " ".join(data.columns.tolist())
 context_columns = ["Sales", "Revenue", "Date", "Usage", "Energy"]
 
-# Replace column names in the context with column names from the data
 context = ""
-for instruction, code in zip(context_data["instruction"], context_data["code"]):
-    example = f"{instruction}\n{code}\n"
-    for column in context_columns:
-        example = example.replace(column, random.choice(data_columns))
-    context += example
+
+
+def plot_column_context(state) -> None:
+    """
+    Replace column names in the plot context with column names from the data
+
+    Args:
+        state (State): Taipy GUI state
+    """
+    state.context = ""
+    for instruction, code in zip(context_data["instruction"], context_data["code"]):
+        example = f"{instruction}\n{code}\n"
+        for column in context_columns:
+            example = example.replace(column, random.choice(state.data_columns))
+        state.context += example
 
 
 def query(payload: dict) -> dict:
@@ -75,7 +84,7 @@ def plot_prompt(state, input_instruction: str) -> str:
     Returns:
         str: Taipy GUI code
     """
-    current_prompt = f"{context}\n{input_instruction}\n"
+    current_prompt = f"{state.context}\n{input_instruction}\n"
     output = ""
     final_result = ""
 
@@ -129,6 +138,7 @@ def on_exception(state, function_name: str, ex: Exception) -> None:
         ex (Exception): Exception
     """
     notify(state, "error", f"An error occured in {function_name}: {ex}")
+    log(state, f"[ERROR] {function_name}: {ex}")
 
 
 def modify_data(state) -> None:
@@ -139,7 +149,7 @@ def modify_data(state) -> None:
         state (State): Taipy GUI state
     """
     log(state, f"[DATA] {state.data_instruction}")
-    current_prompt = f"def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  # transformed_data has columns: {data_columns_str}\n  return "
+    current_prompt = f"def transform(transformed_data: pd.DataFrame) -> pd.DataFrame:\n  # {state.data_instruction}\n  # transformed_data has columns: {state.data_columns_str}\n  return "
     output = ""
     final_result = ""
 
@@ -163,12 +173,19 @@ def modify_data(state) -> None:
 
     print(f"Data transformation code: {final_result}")
     log(state, f"[DATA] {final_result}")
+
     try:
-        state.transformed_data = pd.DataFrame(eval("state." + final_result))
+        to_eval = final_result.replace("transformed_data", "state.transformed_data")
+        state.transformed_data = pd.DataFrame(eval(to_eval))
+        state.data_columns = state.transformed_data.columns.tolist()
+        state.data_columns_str = " ".join(state.transformed_data.columns.tolist())
+        plot_column_context(state)
         notify(state, "success", f"Data Updated!")
         log(state, f"[DATA] Data Manipulation Successful!")
+
     except Exception as ex:
         notify(state, "error", f"Error with code {final_result} --- {ex}")
+        log(state, f"[ERROR] {final_result} --- {ex}")
 
 
 def reset_data(state) -> None:
@@ -194,8 +211,24 @@ def report_feedback(state) -> None:
     notify(state, "success", "Feedback Submitted!")
 
 
+def data_upload(state):
+    """
+    Changes original data to uploaded user csv data
+
+    Args:
+        state (State): Taipy GUI state
+    """
+    log(state, f"[DATA] Upload Data")
+    state.data = pd.read_csv(state.data_path, sep=",", encoding="utf-8")
+    reset_data(state)
+    state.data_columns = state.data.columns.tolist()
+    state.data_columns_str = " ".join(state.data.columns.tolist())
+    plot_column_context(state)
+
+
 logs = []
 transformed_data = data.copy()
+data_path = ""
 data_instruction = ""
 plot_instruction = ""
 result = ""
@@ -238,8 +271,10 @@ page = """
 
 |>
 
+<|{data_path}|file_selector|label=Upload your own dataset (Optional)|on_action=data_upload|extensions=.csv|>
+
 <|Original Data|expandable|expanded=True|
-<|{data}|table|width=100%|page_size=5|>
+<|{data}|table|width=100%|page_size=5|rebuild|>
 |>
 
 ## 1. Enter your instruction to **modify**{: .color-primary} the dataset here:
@@ -258,7 +293,7 @@ page = """
 
 <|part|partial={p}|>
 
-<|Debug Logs|expandable|expanded=True|
+<|Debug Logs (might need refresh)|expandable|expanded=False|
 <|{logs}|table|width=100%|rebuild|>
 |>
 """
