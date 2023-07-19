@@ -1,4 +1,4 @@
-# TaipyCopilot
+# TalkToTaipy
 
 **Manipulate and visualize data with only natural language prompts.**
 
@@ -8,7 +8,7 @@
 
 ## Usage:
 
-TaipyCopilot works with few-shot learning on the open-source StarCoder model.
+TalkToTaipy works with few-shot learning on the open-source StarCoder model.
 
 Using the App works in three steps:
 
