@@ -219,7 +219,7 @@ def data_upload(state):
         state (State): Taipy GUI state
     """
     log(state, f"[DATA] Upload Data")
-    state.data = pd.read_csv(state.data_path, sep=",", encoding="utf-8")
+    state.data = pd.read_csv(state.data_path)
     reset_data(state)
     state.data_columns = state.data.columns.tolist()
     state.data_columns_str = " ".join(state.data.columns.tolist())
