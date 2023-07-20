@@ -45,6 +45,8 @@ Using the App works in three steps:
 
 **Requires a Hugging Face API key in `app.py`** 
 
+**Requires Python >= 3.9** 
+
 [How to get your Hugging Face API key](https://huggingface.co/docs/hub/security-tokens#:~:text=To%20create%20an%20access%20token,you're%20ready%20to%20go!)
 
 **1.** Clone the repo
@@ -53,10 +55,14 @@ Using the App works in three steps:
 git clone https://github.com/AlexandreSajus/TaipyLLM.git
 ```
 
-**2.** Install requirements
+**2.** Install requirements one at a time (currently not working with `pip install -r requirements.txt` for compatibility reasons)
 
 ```bash
-pip install -r requirements.txt
+pip install taipy==2.3.1
+```
+
+```bash
+pip install pandasai==0.6.12
 ```
 
 **3.** Create a `secret.txt` text file next to `app.py` with your Hugging Face API key in it
