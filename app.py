@@ -27,7 +27,13 @@ def modify_data(state) -> None:
     Prompts StarCoder using PandasAI to modify or plot data
     """
     pandasai_output = pandas_ai(state.data, state.user_input)
-    state.data = pandasai_output
+    # Parse if output is DataFrame, Series, string...
+    if isinstance(pandasai_output, pd.DataFrame):
+        state.data = pandasai_output
+    elif isinstance(pandasai_output, pd.Series):
+        state.data = pd.DataFrame(pandasai_output).reset_index()
+    else:
+        state.data = pd.DataFrame([pandasai_output])
 
 
 def reset_data(state) -> None:
