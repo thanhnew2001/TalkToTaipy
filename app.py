@@ -1,16 +1,28 @@
-from taipy.gui import Gui, notify
+from taipy.gui import Gui
 
 from pandasai import PandasAI
 from pandasai.llm.starcoder import Starcoder
+from pandasai.middlewares.base import Middleware
 
 import pandas as pd
+import matplotlib.pyplot as plt
 
 SECRET_PATH = "secret.txt"
 with open(SECRET_PATH, "r") as f:
     API_TOKEN = f.read()
 
+
+class PlotMiddleware(Middleware):
+    def run(self, code: str) -> str:
+        # Remove lines with plt
+        code = "\n".join([line for line in code.split("\n") if "plt" not in line])
+        print(code)
+        return code
+
+
 llm = Starcoder(api_token=API_TOKEN)
 pandas_ai = PandasAI(llm=llm, verbose=True)
+pandas_ai.add_middlewares(PlotMiddleware())
 
 DATA_PATH = "sales_data_sample.csv"
 
@@ -20,18 +32,27 @@ original_data = original_data.sort_values(by="ORDERDATE")
 
 user_input = ""
 data = original_data.copy()
+content = "plot.png"
+i = 0
 
 
 def modify_data(state) -> None:
     """
     Prompts StarCoder using PandasAI to modify or plot data
     """
+    global i
     pandasai_output = pandas_ai(state.data, state.user_input)
     # Parse if output is DataFrame, Series, string...
     if isinstance(pandasai_output, pd.DataFrame):
         state.data = pandasai_output
     elif isinstance(pandasai_output, pd.Series):
         state.data = pd.DataFrame(pandasai_output).reset_index()
+    # If type is Axes
+    elif isinstance(pandasai_output, plt.Axes):
+        i += 1
+        plt.savefig(f"plot{i}.png", dpi=500)
+        state.content = f"plot{i}.png"
+        plt.close("all")
     else:
         state.data = pd.DataFrame([pandasai_output])
 
@@ -49,11 +70,13 @@ page = """
 
 <|{user_input}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your instruction here|>
 
-<|{data}|table|width=100%|page_size=5|rebuild|>
-
-<|part|partial={p}|>
-
 <|Reset to Original Data|button|on_action=reset_data|>
+
+<|Dataset|expandable|expanded=True|
+<|{data}|table|width=100%|page_size=5|rebuild|>
+|>
+
+<|{content}|image|width=50%|>
 """
 
 gui = Gui(page)
