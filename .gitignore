@@ -162,6 +162,7 @@ cython_debug/
 # API Keys
 secret.txt
 
-# temp
+# logs
 logs/
+cache/
 temp/
