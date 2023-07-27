@@ -1,4 +1,4 @@
-from taipy.gui import Gui
+from taipy.gui import Gui, notify
 
 from pandasai import PandasAI
 from pandasai.llm.starcoder import Starcoder
@@ -32,7 +32,7 @@ original_data = original_data.sort_values(by="ORDERDATE")
 
 user_input = ""
 data = original_data.copy()
-content = "plot.png"
+content = None
 i = 0
 
 
@@ -45,24 +45,42 @@ def modify_data(state) -> None:
     # Parse if output is DataFrame, Series, string...
     if isinstance(pandasai_output, pd.DataFrame):
         state.data = pandasai_output
+        notify(state, "success", "Data successfully modified!")
     elif isinstance(pandasai_output, pd.Series):
         state.data = pd.DataFrame(pandasai_output).reset_index()
+        notify(state, "success", "Data successfully modified!")
     # If type is Axes
     elif isinstance(pandasai_output, plt.Axes):
         i += 1
+        plt.tight_layout()
         plt.savefig(f"plot{i}.png", dpi=500)
         state.content = f"plot{i}.png"
         plt.close("all")
+        notify(state, "success", "Plot successfully generated!")
     else:
         state.data = pd.DataFrame([pandasai_output])
+        notify(state, "success", "Data successfully modified!")
+
+
+def on_exception(state, function_name: str, ex: Exception) -> None:
+    """
+    Catches exceptions and notifies user in Taipy GUI
+
+    Args:
+        state (State): Taipy GUI state
+        function_name (str): Name of function where exception occured
+        ex (Exception): Exception
+    """
+    notify(state, "error", f"An error occured in {function_name}: {ex}")
 
 
 def reset_data(state) -> None:
     """
-    Resets data to original data
+    Resets data to original data, resets plot
     """
     state.data = original_data.copy()
     state.p = ""
+    state.content = None
 
 
 page = """
@@ -70,13 +88,15 @@ page = """
 
 <|{user_input}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your instruction here|>
 
-<|Reset to Original Data|button|on_action=reset_data|>
+<|Reset|button|on_action=reset_data|>
+
+<center>
+<|{content}|image|width=50%|>
+</center>
 
 <|Dataset|expandable|expanded=True|
 <|{data}|table|width=100%|page_size=5|rebuild|>
 |>
-
-<|{content}|image|width=50%|>
 """
 
 gui = Gui(page)
