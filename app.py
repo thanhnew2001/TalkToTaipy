@@ -101,4 +101,4 @@ page = """
 
 gui = Gui(page)
 p = gui.add_partial("")
-gui.run(title="Talk To Taipy (alpha)")
+gui.run(title="Talk To Taipy")

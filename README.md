@@ -9,7 +9,7 @@
 ## Usage:
 
 - TalkToTaipy works with few-shot learning using PandasAI and StarCoder.
-- Enter questions about the dataset, data manipulation or plotting instructions in the text box and the app will either display an answer, the modified dataset or a plot.
+- Enter questions about the dataset, data manipulation, or plotting instructions in the text box, and the app will either display an answer, the modified dataset, or a plot.
 - Press the reset button to reset the dataset to its original state.
 
 ## Setup
