@@ -14,14 +14,17 @@ with open(SECRET_PATH, "r") as f:
 
 class PlotMiddleware(Middleware):
     def run(self, code: str) -> str:
-        # Remove lines with plt
-        code = "\n".join([line for line in code.split("\n") if "plt" not in line])
+        code = f"from matplotlib import pyplot as plt\n{code}"
+        # Remove lines with plt.show
+        code = "\n".join([line for line in code.split("\n") if "plt.show" not in line])
+        # Remove lines with plt.close
+        code = "\n".join([line for line in code.split("\n") if "plt.close" not in line])
         print(code)
         return code
 
 
 llm = Starcoder(api_token=API_TOKEN)
-pandas_ai = PandasAI(llm=llm, verbose=True)
+pandas_ai = PandasAI(llm=llm, verbose=True, enable_cache=False)
 pandas_ai.add_middlewares(PlotMiddleware())
 
 DATA_PATH = "sales_data_sample.csv"
@@ -49,17 +52,18 @@ def modify_data(state) -> None:
     elif isinstance(pandasai_output, pd.Series):
         state.data = pd.DataFrame(pandasai_output).reset_index()
         notify(state, "success", "Data successfully modified!")
-    # If type is Axes
-    elif isinstance(pandasai_output, plt.Axes):
+    # If int, str, float, bool
+    elif isinstance(pandasai_output, (int, str, float, bool)):
+        state.data = pd.DataFrame([pandasai_output])
+        notify(state, "success", "Data successfully modified!")
+    # Else is matplotlib plot
+    else:
         i += 1
         plt.tight_layout()
         plt.savefig(f"plot{i}.png", dpi=500)
         state.content = f"plot{i}.png"
         plt.close("all")
         notify(state, "success", "Plot successfully generated!")
-    else:
-        state.data = pd.DataFrame([pandasai_output])
-        notify(state, "success", "Data successfully modified!")
 
 
 def on_exception(state, function_name: str, ex: Exception) -> None:
