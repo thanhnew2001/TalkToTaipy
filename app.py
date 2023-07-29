@@ -44,6 +44,8 @@ def modify_data(state) -> None:
     Prompts StarCoder using PandasAI to modify or plot data
     """
     global i
+    state.data = original_data.copy()
+    state.content = None
     pandasai_output = pandas_ai(state.data, state.user_input)
     # Parse if output is DataFrame, Series, string...
     if isinstance(pandasai_output, pd.DataFrame):
@@ -83,16 +85,12 @@ def reset_data(state) -> None:
     Resets data to original data, resets plot
     """
     state.data = original_data.copy()
-    state.p = ""
-    state.content = None
 
 
 page = """
 # TalkTo**Taipy**{: .color-primary}
 
 <|{user_input}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your instruction here|>
-
-<|Reset|button|on_action=reset_data|>
 
 <center>
 <|{content}|image|width=50%|>
@@ -101,8 +99,9 @@ page = """
 <|Dataset|expandable|expanded=True|
 <|{data}|table|width=100%|page_size=5|rebuild|>
 |>
+
+<|Reset Data|button|on_action=reset_data|>
 """
 
 gui = Gui(page)
-p = gui.add_partial("")
 gui.run(title="Talk To Taipy")
