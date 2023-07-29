@@ -87,8 +87,40 @@ def reset_data(state) -> None:
     state.data = original_data.copy()
 
 
+def example1(state) -> None:
+    """
+    Runs an example prompt
+    """
+    state.user_input = "What are the 5 most profitable cities?"
+    modify_data(state)
+
+
+def example2(state) -> None:
+    """
+    Runs an example prompt
+    """
+    state.user_input = "Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'"
+    modify_data(state)
+
+
+def example3(state) -> None:
+    """
+    Runs an example prompt
+    """
+    state.user_input = "Plot sales by product line in a pie chart"
+    modify_data(state)
+
+
 page = """
 # TalkTo**Taipy**{: .color-primary}
+
+<|Example Instructions|expandable|expanded=True|
+<|What are the 5 most profitable cities?|button|on_action=example1|>
+
+<|Plot sales by product line in a pie chart|button|on_action=example3|>
+
+<|Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'|button|on_action=example2|>
+|>
 
 <|{user_input}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your instruction here|>
 
