@@ -44,6 +44,7 @@ def modify_data(state) -> None:
     Prompts StarCoder using PandasAI to modify or plot data
     """
     global i
+    notify(state, "info", "Running query...")
     state.data = original_data.copy()
     state.content = None
     pandasai_output = pandas_ai(state.data, state.user_input)
