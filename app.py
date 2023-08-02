@@ -134,6 +134,16 @@ page = """
 |>
 
 <|Reset Data|button|on_action=reset_data|>
+
+<|Your instruction failed?|expandable|expanded=True|
+Try the following tips:
+
+- Rephrase or simplify your instruction
+
+- Write the column name or value you are referring to with correct spelling and case
+
+You can also write a support ticket <a href="https://github.com/AlexandreSajus/TalkToTaipy/issues" target="_blank">here</a>
+|>
 """
 
 gui = Gui(page)
