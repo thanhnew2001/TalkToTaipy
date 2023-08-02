@@ -49,7 +49,6 @@ def modify_data(state) -> None:
     """
     global i
     notify(state, "info", "Running query...")
-    state.data = state.default_data.copy()
     state.content = None
     pandasai_output = pandas_ai(state.data, state.user_input)
     # Parse if output is DataFrame, Series, string...
