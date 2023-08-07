@@ -27,16 +27,20 @@ llm = Starcoder(api_token=API_TOKEN)
 pandas_ai = PandasAI(llm=llm, verbose=True, enable_cache=False)
 pandas_ai.add_middlewares(PlotMiddleware())
 
-DATA_PATH = "sales_data_sample.csv"
+ORIGINAL_DATA_PATH = "sales_data_sample.csv"
 
-original_data = pd.read_csv(DATA_PATH, sep=",", encoding="ISO-8859-1")
+original_data = pd.read_csv(ORIGINAL_DATA_PATH, sep=",", encoding="ISO-8859-1")
 original_data["ORDERDATE"] = pd.to_datetime(original_data["ORDERDATE"])
 original_data = original_data.sort_values(by="ORDERDATE")
+
+default_data = original_data.copy()
 
 user_input = ""
 data = original_data.copy()
 content = None
 i = 0
+data_path = ""
+render_examples = True
 
 
 def modify_data(state) -> None:
@@ -45,7 +49,6 @@ def modify_data(state) -> None:
     """
     global i
     notify(state, "info", "Running query...")
-    state.data = original_data.copy()
     state.content = None
     pandasai_output = pandas_ai(state.data, state.user_input)
     # Parse if output is DataFrame, Series, string...
@@ -85,7 +88,7 @@ def reset_data(state) -> None:
     """
     Resets data to original data, resets plot
     """
-    state.data = original_data.copy()
+    state.data = state.default_data.copy()
 
 
 def example1(state) -> None:
@@ -112,15 +115,37 @@ def example3(state) -> None:
     modify_data(state)
 
 
+def data_upload(state) -> None:
+    """
+    Changes dataset to uploaded dataset
+    Removes Example Instructions
+    """
+    state.default_data = pd.read_csv(state.data_path)
+    reset_data(state)
+    state.render_examples = False
+
+
+def reset_app(state) -> None:
+    """
+    Resets app to original state
+    """
+    state.default_data = original_data.copy()
+    reset_data(state)
+    state.render_examples = True
+    state.content = None
+
+
 page = """
 # TalkTo**Taipy**{: .color-primary}
 
+<|part|render={render_examples}|
 <|Example Instructions|expandable|expanded=True|
-<|What are the 5 most profitable cities?|button|on_action=example1|>
+<|What are the 5 most profitable cities?|button|on_action=example1|render=render_examples|>
 
 <|Plot sales by product line in a pie chart|button|on_action=example3|>
 
 <|Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'|button|on_action=example2|>
+|>
 |>
 
 <|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|>
@@ -134,6 +159,18 @@ page = """
 |>
 
 <|Reset Data|button|on_action=reset_data|>
+<|{data_path}|file_selector|on_action=data_upload|label=Upload your csv|>
+<|Reset App|button|on_action=reset_app|>
+
+<|Your instruction failed?|expandable|expanded=True|
+Try the following tips:
+
+- Rephrase or simplify your instruction
+
+- Write the column name or value you are referring to with correct spelling and case
+
+You can also write a support ticket <a href="https://github.com/AlexandreSajus/TalkToTaipy/issues" target="_blank">here</a>
+|>
 """
 
 gui = Gui(page)
