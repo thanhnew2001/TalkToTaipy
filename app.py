@@ -123,7 +123,7 @@ page = """
 <|Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'|button|on_action=example2|>
 |>
 
-<|{user_input}|input|on_action=modify_data|class_name=fullwidth|change_delay=1000|label=Enter your instruction here|>
+<|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|>
 
 <center>
 <|{content}|image|width=50%|>
