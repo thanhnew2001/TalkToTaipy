@@ -1,3 +1,4 @@
 taipy==2.3.1
 pandasai==0.6.12
 pandas
+wordninja

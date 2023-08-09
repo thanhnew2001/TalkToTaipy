@@ -6,6 +6,7 @@ from pandasai.middlewares.base import Middleware
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import wordninja
 
 SECRET_PATH = "secret.txt"
 with open(SECRET_PATH, "r") as f:
@@ -22,6 +23,16 @@ class PlotMiddleware(Middleware):
         print(code)
         return code
 
+def beautify_labels(df):
+    """
+    Function to beautify column labels using wordninja
+    """
+    new_columns = []
+    for column in df.columns:
+        words = wordninja.split(column)
+        new_label = ' '.join(word.capitalize() for word in words)
+        new_columns.append(new_label)
+    df.columns = new_columns
 
 llm = Starcoder(api_token=API_TOKEN)
 pandas_ai = PandasAI(llm=llm, verbose=True, enable_cache=False)
@@ -32,6 +43,9 @@ ORIGINAL_DATA_PATH = "sales_data_sample.csv"
 original_data = pd.read_csv(ORIGINAL_DATA_PATH, sep=",", encoding="ISO-8859-1")
 original_data["ORDERDATE"] = pd.to_datetime(original_data["ORDERDATE"])
 original_data = original_data.sort_values(by="ORDERDATE")
+
+df = pd.DataFrame(original_data)
+beautify_labels(df)
 
 default_data = original_data.copy()
 
@@ -205,7 +219,7 @@ page = """
 |> 
 |>
 
-<|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|>
+<|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|height=20vh|>
 
 
 |>
