@@ -41,15 +41,19 @@ content = None
 i = 0
 data_path = ""
 render_examples = True
-
+show_tips = True
+past_prompts = ["Plot sales by country in a pie chart", "Plot in a bar chart sales of the 10 most profitable cities, sorted descending"]
 
 def modify_data(state) -> None:
     """
     Prompts StarCoder using PandasAI to modify or plot data
     """
     global i
-    notify(state, "info", "Running query...")
+    notify(state, "info", "Running query...")    
+    state.show_tips = False
     state.content = None
+    state.past_prompts.append(state.user_input)
+
     pandasai_output = pandas_ai(state.data, state.user_input)
     # Parse if output is DataFrame, Series, string...
     if isinstance(pandasai_output, pd.DataFrame):
@@ -90,6 +94,12 @@ def reset_data(state) -> None:
     """
     state.data = state.default_data.copy()
 
+def do_show_tips(state) -> None:
+    """
+    Shows tips, like homepage with new refreshment
+    """
+    state.show_tips = True
+    state.content = None
 
 def example1(state) -> None:
     """
@@ -136,42 +146,74 @@ def reset_app(state) -> None:
 
 
 page = """
-# TalkTo**Taipy**{: .color-primary}
 
-<|part|render={render_examples}|
-<|Example Instructions|expandable|expanded=True|
-<|What are the 5 most profitable cities?|button|on_action=example1|render=render_examples|>
+<|layout|columns=1 5|
 
-<|Plot sales by product line in a pie chart|button|on_action=example3|>
+<|part|render=True|
+<|Your actions|expandable|expanded=True|
+<|Reset Data|button|on_action=reset_data|>
+<|Reset App|button|on_action=reset_app|>
+|>
 
-<|Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'|button|on_action=example2|>
+<|Your past prompts|expandable|expanded=True|
+<|New chat|button|on_action=do_show_tips|>
+
+<|You have queried|expandable|expanded=True|
+- <|{past_prompts[len(past_prompts)-1]}|>
+- <|{past_prompts[len(past_prompts)-2]}|>
+- <|{past_prompts[len(past_prompts)-3]}|> 
+|>
+
 |>
 |>
 
-<|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|>
+<|part|render=True|
+
+<|Your current dataset|expandable|expanded=True|
+<|{data_path}|file_selector|on_action=data_upload|label=Upload your CSV file|>
+
+<|{data}|table|width=100%|page_size=5|rebuild|>
 
 <center>
 <|{content}|image|width=50%|>
 </center>
 
-<|Dataset|expandable|expanded=True|
-<|{data}|table|width=100%|page_size=5|rebuild|>
+<|part|render={show_tips}|
+# TalkTo**Taipy**{: .color-primary}
+<|layout|columns=1 1 1|
+
+<|part|render={render_examples}|
+<|Examples|expandable|expanded=True|
+<|What are the 5 most profitable cities?|button|on_action=example1|render=render_examples|>
+<|Plot sales by product line in a pie chart|button|on_action=example3|>
+<|Plot in a bar chart sales of the 5 most profitable cities, sorted descending, with ylabel 'Sales ($)'|button|on_action=example2|>
+|>
 |>
 
-<|Reset Data|button|on_action=reset_data|>
-<|{data_path}|file_selector|on_action=data_upload|label=Upload your csv|>
-<|Reset App|button|on_action=reset_app|>
-
-<|Your instruction failed?|expandable|expanded=True|
-Try the following tips:
-
+<|Tips|expandable|expanded=True|
 - Rephrase or simplify your instruction
-
 - Write the column name or value you are referring to with correct spelling and case
-
-You can also write a support ticket <a href="https://github.com/AlexandreSajus/TalkToTaipy/issues" target="_blank">here</a>
+- You can also write a support ticket <a href="https://github.com/AlexandreSajus/TalkToTaipy/issues" target="_blank">here</a>
 |>
+
+<|Limitations|expandable|expanded=True|
+- May occasionally generate incorrect rendering
+- May need second prompts to render perfectly
+- May not keep track well the past prompts
+|>
+
+|> 
+|>
+
+<|{user_input}|input|on_action=modify_data|class_name=fullwidth|label=Enter your instruction here|>
+
+
+|>
+|>
+|>
+
 """
 
 gui = Gui(page)
 gui.run(title="Talk To Taipy")
+
